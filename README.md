@@ -34,3 +34,24 @@ You can check out [the Next.js GitHub repository](https://github.com/vercel/next
 The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
 
 Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+
+#### README MIO
+
+## Carpetas de (admin)
+
+## 1. Dashboard
+
+Carpeta para el manejo de toda la informacion. Articulos publicados, en borrados y modificarlos de manera facil.
+
+## 2. Escritos
+
+Carpeta para las rutas de los escritos del admin:
+
+1. Dashboard especializado en esto.
+2. Editar y crear escritos
+3. Editar y crear autores.
+4. Editar y crear etiquetas.
+
+# 3. Iniciar sesion
+
+No explico, es obvio Xd
