@@ -2,19 +2,21 @@ export const runtime = "nodejs";
 
 import { auth } from "@/app/actions/auth";
 import { redirect } from "next/navigation";
-import {
-  User,
-  Mail,
-  Shield,
-  BookOpen,
-  Settings,
-  ChevronRight,
-} from "lucide-react";
+import { User, Mail, Shield, BookOpen, Settings } from "lucide-react";
 import LogoutButton from "./logout-button";
 import prisma from "@/lib/prisma";
 import Link from "next/link";
+import { ChevronRight } from "lucide-react";
+import Pagination from "../../(escritos)/escrito/pagination";
+import SearchFilters from "../../(escritos)/search-filter";
 
-export default async function DashboardPage() {
+export default async function DashboardPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
+}) {
+  const params = await searchParams;
+
   // 1. Obtener sesión
   const session = await auth();
 
@@ -39,20 +41,70 @@ export default async function DashboardPage() {
     );
   }
 
+  // Pagination and search logic
+  const porPagina = 10;
+  const paginaActual = Number(params.page) || 1;
+  const skip = (paginaActual - 1) * porPagina;
+  const query = params.query ? String(params.query) : "";
+  const autorFilter = (params.autor as string) || "";
+  const categoriaFilter = (params.category as string) || "TODAS";
+
   // 5. Ahora sí, la consulta es segura
   let misGuardados;
+  let totalGuardados;
+  let allAutores;
+  let allTags;
   try {
-    misGuardados = await prisma.guardado.findMany({
-      where: {
-        userId: userId, // Aquí ya es un número garantizado
-      },
-      include: {
-        escrito: {
-          include: { autor: true },
+    const where: Record<string, any> = { userId: userId };
+    const escritoWhere: Record<string, any> = {};
+    if (query) {
+      escritoWhere.titulo_escrito = { contains: query, mode: "insensitive" };
+    }
+    if (autorFilter) {
+      escritoWhere.autor = { name: autorFilter };
+    }
+    if (categoriaFilter !== "TODAS") {
+      escritoWhere.tags = { some: { name: categoriaFilter } };
+    }
+    if (Object.keys(escritoWhere).length > 0) {
+      where.escrito = escritoWhere;
+    }
+
+    const [totalCount, guardados, autores, tags] = await Promise.all([
+      prisma.guardado.count({ where }),
+      prisma.guardado.findMany({
+        where,
+        include: {
+          escrito: {
+            include: { autor: true, tags: true },
+          },
         },
-      },
-      orderBy: { createdAt: "desc" },
-    });
+        orderBy: { createdAt: "desc" },
+        take: porPagina,
+        skip: skip,
+      }),
+      prisma.guardado.findMany({
+        where: { userId },
+        include: {
+          escrito: {
+            include: { autor: true },
+          },
+        },
+      }),
+      prisma.guardado.findMany({
+        where: { userId },
+        include: {
+          escrito: {
+            include: { tags: true },
+          },
+        },
+      }),
+    ]);
+
+    totalGuardados = totalCount;
+    misGuardados = guardados;
+    allAutores = autores;
+    allTags = tags;
   } catch (error) {
     return (
       <div className="p-10 text-center">
@@ -64,12 +116,16 @@ export default async function DashboardPage() {
     );
   }
 
+  const autoresUnicos = [...new Set(allAutores.map((g) => g.escrito.autor.name))];
+  const categoriasUnicas = [...new Set(allTags.flatMap((g) => g.escrito.tags.map((t) => t.name)))];
+
+  const totalPaginas = Math.ceil(totalGuardados / porPagina);
+
   const { user } = session;
 
   return (
-    <div className="min-h-screen bg-slate-50 p-4 md:p-8">
-      {/* ... (Resto del código de la UI que ya tienes) ... */}
-      <div className="max-w-5xl mx-auto space-y-6">
+    <div className="max-w-full py-20">
+      <div className="max-w-7xl mx-auto space-y-6">
         <header className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
           <div className="flex items-center gap-4">
             <div className="h-16 w-16 bg-blue-600 rounded-full flex items-center justify-center text-white shadow-lg shadow-blue-200">
@@ -87,39 +143,51 @@ export default async function DashboardPage() {
           <LogoutButton />
         </header>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {/* Contadores y datos (Usa el código del mensaje anterior) */}
-          <div className="md:col-span-1 space-y-6">
-            {/* ... Tarjeta de datos ... */}
+        {/* Search and Listado de guardados */}
+        <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 min-h-150">
+          <h2 className="font-bold text-slate-800 flex items-center gap-2 mb-6">
+            <BookOpen size={20} className="text-blue-500" /> Articulos
+            guardados:
+          </h2>
+
+          {/* Search Filters */}
+          <aside className="mb-12">
+            <SearchFilters
+              autores={autoresUnicos}
+              categorias={categoriasUnicas}
+            />
+          </aside>
+
+          <div className="grid gap-3">
+            {misGuardados.length === 0 ? (
+              <p className="text-slate-400 text-center py-10">
+                {query || autorFilter || categoriaFilter !== "TODAS"
+                  ? "No se encontraron guardados con estos filtros."
+                  : "No hay guardados aún."}
+              </p>
+            ) : (
+              misGuardados.map((item) => (
+                <Link
+                  href={`/escrito/${item.escrito.id}`}
+                  key={item.id}
+                  className="p-4 border rounded-xl hover:bg-slate-50 flex justify-between items-center"
+                >
+                  <span>{item.escrito.titulo_escrito}</span>
+                  <ChevronRight size={16} />
+                </Link>
+              ))
+            )}
           </div>
 
-          {/* Listado de guardados */}
-          <div className="md:col-span-2">
-            <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 min-h-100">
-              <h2 className="font-bold text-slate-800 flex items-center gap-2 mb-6">
-                <BookOpen size={20} className="text-blue-500" /> Mi Biblioteca
-              </h2>
-
-              <div className="grid gap-3">
-                {misGuardados.length === 0 ? (
-                  <p className="text-slate-400 text-center py-10">
-                    No hay guardados aún.
-                  </p>
-                ) : (
-                  misGuardados.map((item) => (
-                    <Link
-                      href={`/escrito/${item.escrito.id}`}
-                      key={item.id}
-                      className="p-4 border rounded-xl hover:bg-slate-50 flex justify-between items-center"
-                    >
-                      <span>{item.escrito.titulo_escrito}</span>
-                      <ChevronRight size={16} />
-                    </Link>
-                  ))
-                )}
-              </div>
+          {/* Pagination */}
+          {totalPaginas > 1 && (
+            <div className="mt-8 flex justify-center">
+              <Pagination
+                totalPaginas={totalPaginas}
+                paginaActual={paginaActual}
+              />
             </div>
-          </div>
+          )}
         </div>
       </div>
     </div>

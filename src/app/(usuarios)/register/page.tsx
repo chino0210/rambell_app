@@ -25,11 +25,12 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { UserPlus, Mail, Lock, User, CheckCircle2 } from "lucide-react";
+import { UserPlus, Mail, Lock, User, CheckCircle2, Eye, EyeOff } from "lucide-react";
 
 export default function RegisterForm() {
   const router = useRouter();
-  const [isSuccess, setIsSuccess] = useState(false); // Estado para el éxito
+  const [isSuccess, setIsSuccess] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   const form = useForm<z.infer<typeof registerSchema>>({
     resolver: zodResolver(registerSchema),
@@ -143,13 +144,27 @@ export default function RegisterForm() {
                       <Lock className="h-4 w-4 text-muted-foreground" />
                       <FormControl>
                         <Input
-                          type="password"
+                          type={showPassword ? "text" : "password"}
                           placeholder="••••••••"
                           {...field}
                           disabled={isSuccess}
                           className="border-0 focus-visible:ring-0 focus-visible:ring-offset-0 bg-transparent h-10"
                         />
                       </FormControl>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        className="h-8 w-8 p-0 hover:bg-transparent"
+                        onClick={() => setShowPassword(!showPassword)}
+                        disabled={isSuccess}
+                      >
+                        {showPassword ? (
+                          <EyeOff className="h-4 w-4 text-muted-foreground" />
+                        ) : (
+                          <Eye className="h-4 w-4 text-muted-foreground" />
+                        )}
+                      </Button>
                     </div>
                     <FormMessage />
                   </FormItem>

@@ -6,7 +6,7 @@ export default function EventosPage() {
           <div className="flex flex-col items-center text-center">
             <h1 className="text-5xl font-extrabold tracking-tight text-white sm:text-7xl">
               EVENTOS
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#24FFD4] to-[#00eeff98]">
+              <span className="text-transparent bg-clip-text bg-linear-to-r from-[#24FFD4] to-[#00eeff98]">
                 PAGE
               </span>
             </h1>

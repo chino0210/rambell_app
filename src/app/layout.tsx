@@ -3,7 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 
 /* Import de componentes */
-import NavBar from "@/components/elements/navbar";
+import NavBarEtiquetas from "@/components/elements/newNavBar";
 import Footer from "@/components/elements/footer";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import NextAuthProvider from "./providers/session-provider";
@@ -36,8 +36,8 @@ export default function RootLayout({
       >
         <NextAuthProvider>
           <TooltipProvider>
-            <NavBar />
-            {children}
+            <NavBarEtiquetas />
+            <div className="pt-44">{children}</div>
             <Footer />
           </TooltipProvider>
         </NextAuthProvider>

@@ -2,6 +2,7 @@
 
 import React from "react";
 import { Plate, PlateContent, usePlateEditor } from "platejs/react";
+import type { Value } from "platejs";
 import { TextAlignPlugin, FontSizePlugin } from "@platejs/basic-styles/react";
 import {
   BoldPlugin,
@@ -15,10 +16,10 @@ import { TableKit } from "@/components/table-kit";
 import { IndentKit } from "@/components/indent-kit";
 import { ListKit } from "@/components/list-kit";
 
-export function PlateRenderer({ initialValue }: { initialValue: any }) {
+export function PlateRenderer({ initialValue }: { initialValue: Value }) {
   // Usamos usePlateEditor con la misma config que tu EditorField
   const editor = usePlateEditor({
-    value: initialValue?.length
+    value: initialValue && Array.isArray(initialValue) && initialValue.length > 0 && initialValue[0].type
       ? initialValue
       : [{ type: "p", children: [{ text: "" }] }],
     plugins: [

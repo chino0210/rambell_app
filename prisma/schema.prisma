@@ -13,6 +13,7 @@ model User {
   name      String?
   role      Role       @default(USER)
   favoritos Guardado[]
+  usuarioVistas UsuarioVistas[]
 
   @@map("usuarios")
 }
@@ -27,23 +28,24 @@ model Autor {
 }
 
 model Escrito {
-  id             String      @id @default(cuid())
-  titulo_escrito String
-  resumen        String
-  autorId        Int
-  contenido      Json
-  link_documento String?
-  link_imagen    String?
-  status         WriteStatus @default(BORRADOR)
-  createdAt      DateTime    @default(now())
-  updatedAt      DateTime    @updatedAt
-  numero_guardados Int @default(0) @map("guardado")
-  views Int   @default(0)
-  autor Autor @relation(fields: [autorId], references: [id])
-  tags  Tag[] @relation("EscritoToTag")
+  id               String      @id @default(cuid())
+  titulo_escrito   String
+  resumen          String
+  autorId          Int
+  contenido        Json
+  link_documento   String?
+  link_imagen      String?
+  status           WriteStatus @default(BORRADOR)
+  createdAt        DateTime    @default(now())
+  updatedAt        DateTime    @updatedAt
+  numero_guardados Int         @default(0) @map("guardado")
+  views            Int         @default(0)
+  autor            Autor       @relation(fields: [autorId], references: [id])
+  tags             Tag[]       @relation("EscritoToTag")
 
   // Relación con los usuarios que han guardado este escrito
   usuariosQueGuardaron Guardado[]
+  usuarioVistas        UsuarioVistas[]
 
   @@map("escritos")
 }
@@ -62,10 +64,11 @@ model Guardado {
 }
 
 model Tag {
-  id       Int       @id @default(autoincrement())
-  name     String    @unique
-  color    String
-  escritos Escrito[] @relation("EscritoToTag")
+  id        Int       @id @default(autoincrement())
+  name      String    @unique
+  color     String
+  code_name String
+  escritos  Escrito[] @relation("EscritoToTag")
 
   @@map("etiquetas")
 }
@@ -78,4 +81,17 @@ enum Role {
 enum WriteStatus {
   PUBLICADO
   BORRADOR
+}
+
+model UsuarioVistas {
+  id         Int      @id @default(autoincrement())
+  userId     Int
+  escritoId  String
+  lastViewed DateTime @default(now())
+
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  escrito Escrito @relation(fields: [escritoId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, escritoId])
+  @@map("usuario_vistas")
 }

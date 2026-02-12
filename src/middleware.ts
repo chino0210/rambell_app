@@ -17,7 +17,8 @@ export default auth((req) => {
   );
   const isPublicRoute =
     ["/", "/publico"].includes(nextUrl.pathname) ||
-    nextUrl.pathname.startsWith("/escrito");
+    nextUrl.pathname.startsWith("/escrito") ||
+    nextUrl.pathname.startsWith("/escritos/"); // Rutas de escritos son públicas
 
   // 3. SI YA ESTÁ LOGUEADO y quiere ir a Login/Register -> Mandarlo a /cuenta
   if (isAuthRoute) {
